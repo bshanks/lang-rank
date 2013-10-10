@@ -18,6 +18,25 @@ block content
   hr(style='clear:both;')
 
 
+  h1(style='clear:both;') Most well-known:
+    br(style='clear:both;')
+    br
+
+    - each val, favour in langsWellknown
+      div(style='float:left;width:20%')
+        p(style='font-style:italic;overflow:auto') Most #{favour}d
+    p(style='clear:both;')
+
+    - each val, favour in langsWellknown
+      div(style='float:left;width:20%')
+        - each lang in val
+          p(style='white-space:pre;') #{lang.name} #{Math.round(lang.score*100)/100}
+
+  hr(style='clear:both;')
+
+
+
+
   h1(style='clear:both;') Most loved, with log(likes+dislikes):
     br(style='clear:both;')
     br

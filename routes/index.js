@@ -106,18 +106,42 @@ var refresh = function () { console.log('running')
 
 
 
+    langsWellknown = {
+      like: [],
+      dislike: []
+    };
+
+    $('table table table').first().find('tr').each(function() {
+      var langParts = this.find('font');
+      if (langParts.length) {
+        langParts = langParts.text().toLowerCase().split(' - ');
+        langsWellknown[langParts[1]].push({ name: langParts[0] });
+        return;
+      }
+
+      var score = this.find('.comhead span');
+      if (score.length) {
+        score = score.text().split(' ')[0];
+        langsWellknown[next][langsWellknown[next].length - 1].score = +score;
+        next = next === 'like' ? 'dislike' : 'like';
+      }
+    });
+
+
+
+
 
 
     a = []
-    for (var lang in langsLoved['like']) {
+    for (var lang in langsWellknown['like']) {
 	l = []
-	l['name'] = langsLoved['like'][lang]['name']
-	likes = langsLoved['like'][lang]['score']
-	dislikes = langsLoved['dislike'][lang]['score']
+	l['name'] = langsWellknown['like'][lang]['name']
+	likes = langsWellknown['like'][lang]['score']
+	dislikes = langsWellknown['dislike'][lang]['score']
 	l['score'] = likes+dislikes
 	a[lang] = l
     }
-    langsLoved['(like+dislike)'] = a
+    langsWellknown['(like+dislike)'] = a
 
       
 
@@ -132,6 +156,20 @@ var refresh = function () { console.log('running')
 	a[lang] = l
     }
     langsLoved['(like/dislike)'] = a
+
+
+
+    a = []
+    for (var lang in langsLoved['like']) {
+	l = []
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
+	l['score'] = dislikes/likes
+	a[lang] = l
+    }
+    langsHated['(dislike/like)'] = a
+
 
 
     a = []
@@ -158,13 +196,39 @@ var refresh = function () { console.log('running')
     langsLovedWithLog['( (like/(like+dislike))*log(like) )'] = a
 
 
+
+    a = []
+    for (var lang in langsLovedWithLog['like']) {
+	l = []
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
+	l['score'] = (dislikes/likes) * Math.log(dislikes)
+	a[lang] = l
+    }
+    langsHatedWithLog['( (dislike/like)*log(dislike) )'] = a
+
+
+    a = []
+    for (var lang in langsLovedWithLog['like']) {
+	l = []
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
+	l['score'] = (dislikes/(likes+dislikes)) * Math.log(dislikes)
+	a[lang] = l
+    }
+    langsHatedWithLog['( (dislike/(like+dislike))*log(dislike) )'] = a
+
+
+
     // Dirichlet priors (e.g. psuedo-counts; see http://masanjin.net/blog/how-to-rank-products-based-on-user-input )
     mostUnpopularLanguage = 'other'
     mostUnpopularLanguageSum = Number.MAX_VALUE
     for (var lang in langsLoved['like']) {
-	if (langsLoved['(like+dislike)'][lang]['score'] < mostUnpopularLanguageSum) {
+	if (langsWellknown['(like+dislike)'][lang]['score'] < mostUnpopularLanguageSum) {
 	    mostUnpopularLanguage = lang
-	    mostUnpopularLanguageSum = langsLoved['(like+dislike)'][lang]['score']
+	    mostUnpopularLanguageSum = langsWellknown['(like+dislike)'][lang]['score']
         }
     }
 
@@ -200,6 +264,38 @@ var refresh = function () { console.log('running')
 
 
 
+
+    a = []
+    for (var lang in langsLovedWithLog['like']) {
+	l = []
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
+	likesDirichlet = likes + mostUnpopularLanguageSum/2.0
+	dislikesDirichlet = dislikes + mostUnpopularLanguageSum/2.0
+	l['score'] = (dislikesDirichlet/(likesDirichlet+dislikesDirichlet)) * Math.log(dislikesDirichlet)
+	a[lang] = l
+    }
+    langsHatedWithLog['( (dislikeDirichlet/(likeDirichlet+dislikeDirichlet))*log(dislikeDirichlet), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
+
+
+
+    a = []
+    for (var lang in langsLoved['like']) {
+	l = []
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
+	likesDirichlet = likes + mostUnpopularLanguageSum/2.0
+	dislikesDirichlet = dislikes + mostUnpopularLanguageSum/2.0
+	l['score'] = (dislikesDirichlet/(likesDirichlet+dislikesDirichlet))
+	a[lang] = l
+    }
+    langsHated['( (dislikeDirichlet/(likeDirichlet+dislikeDirichlet)), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
+
+
+
+
     // http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
     // thanks https://gist.github.com/honza/5050540
     function ci(pos, n) {
@@ -224,9 +320,24 @@ var refresh = function () { console.log('running')
     langsLoved['( lower bound of confidence interval at 95% level )'] = a
 
 
+
+    a = []
+    for (var lang in langsLoved['like']) {
+	l = []
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
+	l['score'] = ci(dislikes, likes + dislikes)
+	a[lang] = l
+    }
+    langsHated['( lower bound of confidence interval at 95% level )'] = a
+
+
     delete langsLoved['dislike']
     delete langsLovedWithLog['like']
     delete langsLovedWithLog['dislike']
+    delete langsWellknown['like']
+    delete langsWellknown['dislike']
     delete langsHated['like']
     delete langsHatedWithLog['like']
     delete langsHatedWithLog['dislike']

@@ -355,6 +355,14 @@ var refresh = function () { console.log('running')
       });
     }
 
+
+    for (var favour in langsWellknown) {
+      langsWellknown[favour].sort(function (a, b) {
+        return b.score - a.score;
+      });
+    }
+
+
     for (var favour in langsHated) {
       langsHated[favour].sort(function (a, b) {
         return b.score - a.score;

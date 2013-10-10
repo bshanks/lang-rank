@@ -1,8 +1,73 @@
 extends layout
 
 block content
-  - each val, favour in langs
-    div(style='float:left;width:49%')
-      h2 Most #{favour}d
-      - each lang in val
-        p #{lang.name} #{lang.score}
+  h1(style='clear:both;') Most loved:
+    br(style='clear:both;')
+    br
+
+    - each val, favour in langsLoved
+      div(style='float:left;width:20%')
+        p(style='font-style:italic;overflow:auto') Most #{favour}d
+    p(style='clear:both;')
+
+    - each val, favour in langsLoved
+      div(style='float:left;width:20%')
+        - each lang in val
+          p(style='white-space:pre;') #{lang.name} #{Math.round(lang.score*100)/100}
+
+  hr(style='clear:both;')
+
+
+  h1(style='clear:both;') Most loved, with log(likes+dislikes):
+    br(style='clear:both;')
+    br
+
+    - each val, favour in langsLovedWithLog
+      div(style='float:left;width:20%')
+        p(style='font-style:italic;overflow:auto') Most #{favour}d
+    p(style='clear:both;')
+
+    - each val, favour in langsLovedWithLog
+      div(style='float:left;width:20%')
+        - each lang in val
+          p(style='white-space:pre;') #{lang.name} #{Math.round(lang.score*100)/100}
+
+  hr(style='clear:both;')
+
+
+
+
+  h1(style='clear:both;') Most hated:
+    br(style='clear:both;')
+    br
+
+    - each val, favour in langsHated
+      div(style='float:left;width:20%')
+        p(style='font-style:italic;overflow:auto') Most #{favour}d
+    p(style='clear:both;')
+
+    - each val, favour in langsHated
+      div(style='float:left;width:20%')
+        - each lang in val
+          p(style='white-space:pre;') #{lang.name} #{Math.round(lang.score*100)/100}
+
+  hr(style='clear:both;')
+
+
+
+  h1(style='clear:both;') Most hated, with log(likes+dislikes):
+    br(style='clear:both;')
+    br
+
+    - each val, favour in langsHatedWithLog
+      div(style='float:left;width:20%')
+        p(style='font-style:italic;overflow:auto') Most #{favour}d
+    p(style='clear:both;')
+
+    - each val, favour in langsHatedWithLog
+      div(style='float:left;width:20%')
+        - each lang in val
+          p(style='white-space:pre;') #{lang.name} #{Math.round(lang.score*100)/100}
+
+  hr(style='clear:both;')
+

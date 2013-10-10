@@ -14,7 +14,7 @@ var refresh = function () { console.log('running')
   request('http://news.ycombinator.com/item?id=6527104', function (err, res, body) {
     var $ = cheerio.load(body);
 
-    var newLangs = {
+    langsLoved = {
       like: [],
       dislike: []
     };
@@ -23,104 +23,180 @@ var refresh = function () { console.log('running')
       var langParts = this.find('font');
       if (langParts.length) {
         langParts = langParts.text().toLowerCase().split(' - ');
-        newLangs[langParts[1]].push({ name: langParts[0] });
+        langsLoved[langParts[1]].push({ name: langParts[0] });
         return;
       }
 
       var score = this.find('.comhead span');
       if (score.length) {
         score = score.text().split(' ')[0];
-        newLangs[next][newLangs[next].length - 1].score = +score;
+        langsLoved[next][langsLoved[next].length - 1].score = +score;
         next = next === 'like' ? 'dislike' : 'like';
       }
     });
 
 
+
+    langsLovedWithLog = {
+      like: [],
+      dislike: []
+    };
+
+    $('table table table').first().find('tr').each(function() {
+      var langParts = this.find('font');
+      if (langParts.length) {
+        langParts = langParts.text().toLowerCase().split(' - ');
+        langsLovedWithLog[langParts[1]].push({ name: langParts[0] });
+        return;
+      }
+
+      var score = this.find('.comhead span');
+      if (score.length) {
+        score = score.text().split(' ')[0];
+        langsLovedWithLog[next][langsLovedWithLog[next].length - 1].score = +score;
+        next = next === 'like' ? 'dislike' : 'like';
+      }
+    });
+
+
+
+    langsHated = {
+      like: [],
+      dislike: []
+    };
+
+    $('table table table').first().find('tr').each(function() {
+      var langParts = this.find('font');
+      if (langParts.length) {
+        langParts = langParts.text().toLowerCase().split(' - ');
+        langsHated[langParts[1]].push({ name: langParts[0] });
+        return;
+      }
+
+      var score = this.find('.comhead span');
+      if (score.length) {
+        score = score.text().split(' ')[0];
+        langsHated[next][langsHated[next].length - 1].score = +score;
+        next = next === 'like' ? 'dislike' : 'like';
+      }
+    });
+
+
+
+    langsHatedWithLog = {
+      like: [],
+      dislike: []
+    };
+
+    $('table table table').first().find('tr').each(function() {
+      var langParts = this.find('font');
+      if (langParts.length) {
+        langParts = langParts.text().toLowerCase().split(' - ');
+        langsHatedWithLog[langParts[1]].push({ name: langParts[0] });
+        return;
+      }
+
+      var score = this.find('.comhead span');
+      if (score.length) {
+        score = score.text().split(' ')[0];
+        langsHatedWithLog[next][langsHatedWithLog[next].length - 1].score = +score;
+        next = next === 'like' ? 'dislike' : 'like';
+      }
+    });
+
+
+
+
+
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLoved['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
 	l['score'] = likes+dislikes
 	a[lang] = l
     }
-    newLangs['(like+dislike)'] = a
+    langsLoved['(like+dislike)'] = a
 
       
 
 
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLoved['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
 	l['score'] = likes/dislikes
 	a[lang] = l
     }
-    newLangs['(like/dislike)'] = a
+    langsLoved['(like/dislike)'] = a
+
 
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLovedWithLog['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
 	l['score'] = (likes/dislikes) * Math.log(likes)
 	a[lang] = l
     }
-    newLangs['( (like/dislike)*log(like) )'] = a
+    langsLovedWithLog['( (like/dislike)*log(like) )'] = a
 
 
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLovedWithLog['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
 	l['score'] = (likes/(likes+dislikes)) * Math.log(likes)
 	a[lang] = l
     }
-    newLangs['( (like/(like+dislike))*log(like) )'] = a
+    langsLovedWithLog['( (like/(like+dislike))*log(like) )'] = a
 
 
     // Dirichlet priors (e.g. psuedo-counts; see http://masanjin.net/blog/how-to-rank-products-based-on-user-input )
     mostUnpopularLanguage = 'other'
     mostUnpopularLanguageSum = Number.MAX_VALUE
-    for (var lang in newLangs['like']) {
-	if (newLangs['(like+dislike)'][lang]['score'] < mostUnpopularLanguageSum) {
+    for (var lang in langsLoved['like']) {
+	if (langsLoved['(like+dislike)'][lang]['score'] < mostUnpopularLanguageSum) {
 	    mostUnpopularLanguage = lang
-	    mostUnpopularLanguageSum = newLangs['(like+dislike)'][lang]['score']
+	    mostUnpopularLanguageSum = langsLoved['(like+dislike)'][lang]['score']
         }
     }
 
+
+
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLovedWithLog['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLovedWithLog['like'][lang]['name']
+	likes = langsLovedWithLog['like'][lang]['score']
+	dislikes = langsLovedWithLog['dislike'][lang]['score']
 	likesDirichlet = likes + mostUnpopularLanguageSum/2.0
 	dislikesDirichlet = dislikes + mostUnpopularLanguageSum/2.0
 	l['score'] = (likesDirichlet/(likesDirichlet+dislikesDirichlet)) * Math.log(likesDirichlet)
 	a[lang] = l
     }
-    newLangs['( (likeDirichlet/(likeDirichlet+dislikeDirichlet))*log(likeDirichlet), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
+    langsLovedWithLog['( (likeDirichlet/(likeDirichlet+dislikeDirichlet))*log(likeDirichlet), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
+
 
 
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLoved['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
 	likesDirichlet = likes + mostUnpopularLanguageSum/2.0
 	dislikesDirichlet = dislikes + mostUnpopularLanguageSum/2.0
 	l['score'] = (likesDirichlet/(likesDirichlet+dislikesDirichlet))
 	a[lang] = l
     }
-    newLangs['( (likeDirichlet/(likeDirichlet+dislikeDirichlet)), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
+    langsLoved['( (likeDirichlet/(likeDirichlet+dislikeDirichlet)), where xDirichlet = x plus min_{over all languages}((like+dislike)/2) )'] = a
 
 
 
@@ -137,23 +213,54 @@ var refresh = function () { console.log('running')
 
 
     a = []
-    for (var lang in newLangs['like']) {
+    for (var lang in langsLoved['like']) {
 	l = []
-	l['name'] = newLangs['like'][lang]['name']
-	likes = newLangs['like'][lang]['score']
-	dislikes = newLangs['dislike'][lang]['score']
+	l['name'] = langsLoved['like'][lang]['name']
+	likes = langsLoved['like'][lang]['score']
+	dislikes = langsLoved['dislike'][lang]['score']
 	l['score'] = ci(likes, likes + dislikes)
 	a[lang] = l
     }
-    newLangs['( lower bound of confidence interval at 95% level )'] = a
+    langsLoved['( lower bound of confidence interval at 95% level )'] = a
 
-    for (var favour in newLangs) {
-      newLangs[favour].sort(function (a, b) {
+
+    delete langsLoved['dislike']
+    delete langsLovedWithLog['like']
+    delete langsLovedWithLog['dislike']
+    delete langsHated['like']
+    delete langsHatedWithLog['like']
+    delete langsHatedWithLog['dislike']
+
+
+    for (var favour in langsLoved) {
+      langsLoved[favour].sort(function (a, b) {
         return b.score - a.score;
       });
     }
 
-    langs = newLangs;
+    for (var favour in langsLovedWithLog) {
+      langsLovedWithLog[favour].sort(function (a, b) {
+        return b.score - a.score;
+      });
+    }
+
+    for (var favour in langsHated) {
+      langsHated[favour].sort(function (a, b) {
+        return b.score - a.score;
+      });
+    }
+
+
+    for (var favour in langsHatedWithLog) {
+      langsHatedWithLog[favour].sort(function (a, b) {
+        return b.score - a.score;
+      });
+    }
+
+
+
+
+
     console.log('done')
   });
 };
